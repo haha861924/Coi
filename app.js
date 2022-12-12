@@ -40,7 +40,7 @@ const handleEvent = async (e) => {
   const completion = await openai.createCompletion({
     model: 'text-davinci-003',
     prompt: e.message.text,
-    max_tokens: 300,
+    max_tokens: 200,
   });
 
   //create a echoing text message
