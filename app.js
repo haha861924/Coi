@@ -3,13 +3,19 @@ require('dotenv').config();
 
 const express = require('express');
 const line = require('@line/bot-sdk');
+const { Configuration, OpenAIApi } = require('openai');
 
 const config = {
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN, // 替換成你的 CHANNEL_ACCESS_TOKEN
   channelSecret: process.env.CHANNEL_SECRET, // 替換成你的 CHANNEL_SECRET
 };
 
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
 const client = new line.Client(config);
+const openai = new OpenAIApi(configuration);
 
 const app = express();
 
@@ -26,12 +32,19 @@ app.post('/callback', line.middleware(config), (req, res) => {
     });
 });
 
-const handleEvent = (e) => {
+const handleEvent = async (e) => {
   // ignore none message or text
   if (e.type !== 'message' || e.message.type !== 'text') return Promise.resolve(null);
 
+  // ai model render text
+  const completion = await openai.createCompletion({
+    model: 'text-davinci-003',
+    prompt: e.message.text,
+    max_tokens: 300,
+  });
+
   //create a echoing text message
-  const echo = { type: 'text', text: e.message.text };
+  const echo = { type: 'text', text: completion.data.choices[0].text.trim() };
 
   // use reply api
   return client.replyMessage(e.replyToken, echo);
