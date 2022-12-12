@@ -1,25 +1,44 @@
-const linebot = require('linebot')
+'use strict';
+require('dotenv').config();
 
-const bot = linebot({
-  channelId: '', // 替換成你的CHANNEL_ID
-  channelSecret: '', // 替換成你的CHANNEL_SECRET
-  channelAccessToken: '' // 替換成你的CHANNEL_ACCESS_TOKEN
-})
+const express = require('express');
+const line = require('@line/bot-sdk');
 
-bot.on('message', (event) => {
-  const replyMessage = `你剛剛說： ${event.message.text} ?`
+const config = {
+  channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN, // 替換成你的 CHANNEL_ACCESS_TOKEN
+  channelSecret: process.env.CHANNEL_SECRET, // 替換成你的 CHANNEL_SECRET
+};
 
-  event
-    .reply(replyMessage)
-    .then(data => {
-      console.log('🚀 ~ e.reply ~ data', data);
-      console.log('成功發送訊息')
-    })
-    .catch(err => {
-      console.log('🚀 ~ bot.on ~ err', err);
-    })
-})
+const client = new line.Client(config);
 
-bot.listen('/linewebhook', 3000, () => {
-  console.log('line bot 已開啟')
-})
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send(`access token: ${config.channelAccessToken}, secret: ${config.channelSecret}`);
+});
+
+app.post('/callback', line.middleware(config), (req, res) => {
+  Promise.all(req.body.events.map(handleEvent))
+    .then((result) => res.json(result))
+    .catch((e) => {
+      console.log('🚀 ~ app.post ~ e', e);
+      res.status(500).end();
+    });
+});
+
+const handleEvent = (e) => {
+  // ignore none message or text
+  if (e.type !== 'message' || e.type !== 'text') return Promise.resolve(null);
+
+  //create a echoing text message
+  const echo = { type: 'text', text: e.message.text };
+
+  // use reply api
+  return client.replyMessage(e.replyToken, echo);
+};
+
+const port = process.env.PORT || 3001;
+
+app.listen(port, () => {
+  console.log(`listening app: ${port}`);
+});
