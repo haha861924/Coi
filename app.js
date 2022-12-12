@@ -20,15 +20,15 @@ app.get('/', (req, res) => {
 app.post('/callback', line.middleware(config), (req, res) => {
   Promise.all(req.body.events.map(handleEvent))
     .then((result) => res.json(result))
-    .catch((e) => {
-      console.log('🚀 ~ app.post ~ e', e);
+    .catch((error) => {
+      console.error('🚀 ~ app.post ~ error', error);
       res.status(500).end();
     });
 });
 
 const handleEvent = (e) => {
   // ignore none message or text
-  if (e.type !== 'message' || e.type !== 'text') return Promise.resolve(null);
+  if (e.type !== 'message' || e.message.type !== 'text') return Promise.resolve(null);
 
   //create a echoing text message
   const echo = { type: 'text', text: e.message.text };
