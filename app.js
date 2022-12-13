@@ -1,4 +1,3 @@
-'use strict';
 require('dotenv').config();
 
 const express = require('express');
@@ -40,7 +39,7 @@ const handleEvent = async (e) => {
   const completion = await openai.createCompletion({
     model: 'text-davinci-003',
     prompt: e.message.text,
-    max_tokens: 200,
+    max_tokens: 500,
   });
 
   //create a echoing text message
