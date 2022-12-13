@@ -33,7 +33,7 @@ app.post('/callback', line.middleware(config), (req, res) => {
 
 const handleEvent = async (e) => {
   // ignore none message or text
-  if (e.type !== 'message' || e.message.type !== 'text' || e.message.text.includes('/'))
+  if (e.type !== 'message' || e.message.type !== 'text' || !e.message.text.includes('/'))
     return Promise.resolve(null);
 
   // ai model render text
